@@ -2,14 +2,14 @@ services:
   webserver:
     depends_on:
       - wordpress
-    image: nginx:1.15.12-alpine
+    image: nginx:1.27.3
     container_name: webserver
     restart: unless-stopped
     ports:
-      - 8088:80
+      - 80:80
     volumes:
-      - wordpress:/var/www/html
-      - ./nginx-app/nginx.conf:/etc/nginx/conf.d/nginx.conf
+#      - wordpress:/var/www/html
+      - ./nginx-app/nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - web-net
       - web-net2
@@ -22,13 +22,15 @@ services:
     container_name: wordpress
     restart: unless-stopped
     env_file: .env
+    ports:
+      - 80
     environment:
       - WORDPRESS_DB_HOST=database:3306
       - WORDPRESS_DB_USER=$MYSQL_USER
       - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
       - WORDPRESS_DB_NAME=wordpress
-    volumes:
-      - wordpress:/var/www/html
+#    volumes:
+#      - wordpress:/var/www/html
     networks:
       - web-net
       - app-network
@@ -61,4 +63,4 @@ networks:
   web-net:
   app-network:
   web-net2:
-    external: true
+#    external: true
