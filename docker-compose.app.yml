@@ -1,0 +1,64 @@
+services:
+  webserver:
+    depends_on:
+      - wordpress
+    image: nginx:1.15.12-alpine
+    container_name: webserver
+    restart: unless-stopped
+    ports:
+      - 8088:80
+    volumes:
+      - wordpress:/var/www/html
+      - ./nginx-app/nginx.conf:/etc/nginx/conf.d/nginx.conf
+    networks:
+      - web-net
+      - web-net2
+
+  wordpress:
+    build: ./wp
+    depends_on:
+      - database
+      - redis
+    container_name: wordpress
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=database:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - web-net
+      - app-network
+
+  database:
+    image: mysql:8.0
+    container_name: database
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=wordpress
+    volumes:
+      - dbdata:/var/lib/mysql
+    command: '--default-authentication-plugin=mysql_native_password'
+    networks:
+      - app-network
+
+  redis:
+    image: redis:8.0-M02-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  wordpress:
+  dbdata:
+
+networks:
+  web-net:
+  app-network:
+  web-net2:
+    external: true
